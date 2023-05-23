@@ -4,6 +4,7 @@ import "./res/index.css";
 import dayjs from "dayjs";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useNavigate } from "react-router-dom";
+import { Pagination } from "@mui/material";
 
 const USER_NO = "ME00001";
 const PAGE_SIZE = 3;
@@ -14,6 +15,7 @@ function App() {
   const [summary, setSummary] = useState();
   const [usedList, setUsedList] = useState([]);
   const [pageIndex, setPageIndex] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const navigate = useNavigate();
 
   //infinite scroll 사용시
@@ -48,28 +50,70 @@ function App() {
   //---------------------------------------------------
 
   // 2. infinite scroll 사용시
-  const getUsedList = () => {
-    axios
-      .get(
-        `http://localhost:8080/api/v1/user/${USER_NO}/usage?ptype=${ptype}&page_index=1&page_size=${PAGE_SIZE}`
-      )
-      .then((response) => {
-        setUsedList(response.data?.list);
-        setPageIndex((pageIndex) => pageIndex + 1);
-      });
-  };
+  // const getUsedList = () => {
+  //   axios
+  //     .get(
+  //       `http://localhost:8080/api/v1/user/${USER_NO}/usage?ptype=${ptype}&page_index=1&page_size=${PAGE_SIZE}`
+  //     )
+  //     .then((response) => {
+  //       setUsedList(response.data?.list);
+  //       setPageIndex((pageIndex) => pageIndex + 1);
+  //     });
+  // };
 
-  const fetchMoreData = () => {
+  // const fetchMoreData = () => {
+  //   axios
+  //     .get(
+  //       `http://localhost:8080/api/v1/user/${USER_NO}/usage?ptype=${ptype}&page_index=${pageIndex}&page_size=${PAGE_SIZE}`
+  //     )
+  //     .then((response) => {
+  //       setUsedList(usedList.concat(response.data?.list));
+  //       setPageIndex((pageIndex) => pageIndex + 1);
+  //     });
+  // };
+  //--------------------------------------------------------
+
+  // 3. pagination 사용시
+  const getUsedList = () => {
     axios
       .get(
         `http://localhost:8080/api/v1/user/${USER_NO}/usage?ptype=${ptype}&page_index=${pageIndex}&page_size=${PAGE_SIZE}`
       )
       .then((response) => {
-        setUsedList(usedList.concat(response.data?.list));
-        setPageIndex((pageIndex) => pageIndex + 1);
+        setUsedList(response.data?.list);
+        setTotalCount(response.data?.totalCount);
       });
   };
-  //--------------------------------------------------------
+
+  // insert Test
+  const insertTest = () => {
+    axios
+      .post(`http://localhost:8080/api/v1/user`, [
+        {
+          user_no: "ME00007",
+          name: "sdf",
+          email: "kong@naver.com",
+        },
+        {
+          user_no: "ME00008",
+          name: "zzz",
+          email: "kong@naver.com",
+        },
+        {
+          user_no: "ME00009",
+          name: "eee",
+          email: "kong@naver.com",
+        },
+      ])
+      .then((response) => {
+        console.log(response);
+      });
+  };
+
+  const onPageChange = (e, page) => {
+    setPageIndex(page);
+    // getUsedList();
+  };
 
   const reset = () => {
     setUsedList(true);
@@ -104,14 +148,23 @@ function App() {
     setPageIndex(1); // infinite scroll 사용시!
   }, [ptype]);
 
+  useEffect(() => {
+    getUsedList();
+  }, [pageIndex]);
+
   return (
     <div>
       <div className="main-title">
         <h1>서비스 이용내역</h1>
-        <button onClick={() => {
-          const queryData = "ImYourFather"
-          navigate({ pathname: '/test', search: `?data=${queryData}` });
-        }}>페이지 이동</button>
+        <button
+          onClick={() => {
+            const queryData = "ImYourFather";
+            navigate({ pathname: "/test", search: `?data=${queryData}` });
+          }}
+        >
+          페이지 이동
+        </button>
+        <button onClick={insertTest}>인서트 테스트</button>
         <div>{userName}</div>
       </div>
       <hr />
@@ -196,46 +249,94 @@ function App() {
         //   })}
         // </div>
 
-        <InfiniteScroll
-          dataLength={usedList.length}
-          next={fetchMoreData}
-          hasMore={scrollMore}
-        >
-          {usedList.map((item, idx) => {
-            return (
-              <>
-                <div class="service-list-content">
-                  <div class="service-list-header">
-                    <span>{formatNumber(item.use_distance)}km</span>
-                    <span class="color-gray ml-10">
-                      {formatNumber(item.use_time)}분
-                    </span>
-                  </div>
-                  <div class="service-list-body">
-                    <div class="color-gray">이용시간</div>
-                    <div>
-                      {formatDate(item.use_start_dt)} ~{" "}
-                      {formatDate(item.use_end_dt)}
+        // 2. InfiniteScroll
+        // <InfiniteScroll
+        //   dataLength={usedList.length}
+        //   next={fetchMoreData}
+        //   hasMore={scrollMore}
+        // >
+        //   {usedList.map((item, idx) => {
+        //     return (
+        //       <>
+        //         <div class="service-list-content">
+        //           <div class="service-list-header">
+        //             <span>{formatNumber(item.use_distance)}km</span>
+        //             <span class="color-gray ml-10">
+        //               {formatNumber(item.use_time)}분
+        //             </span>
+        //           </div>
+        //           <div class="service-list-body">
+        //             <div class="color-gray">이용시간</div>
+        //             <div>
+        //               {formatDate(item.use_start_dt)} ~{" "}
+        //               {formatDate(item.use_end_dt)}
+        //             </div>
+        //             <div class="color-gray">결제일시</div>
+        //             <div>{formatDate(item.pay_datetime)}</div>
+        //             <div class="color-gray">결제수단</div>
+        //             <div>
+        //               {item.card_pay > 0
+        //                 ? `카드 ${formatNumber(item.card_pay)}원`
+        //                 : ""}
+        //               {item.card_pay > 0 && item.point_pay > 0 ? " + " : ""}
+        //               {item.point_pay > 0
+        //                 ? `포인트 ${formatNumber(item.point_pay)}P`
+        //                 : ""}
+        //             </div>
+        //           </div>
+        //         </div>
+        //         <hr />
+        //       </>
+        //     );
+        //   })}
+        // </InfiniteScroll>
+
+        // 3. pagination
+        <>
+          <div class="service-list-container">
+            {usedList.map((item, idx) => {
+              return (
+                <>
+                  <div class="service-list-content">
+                    <div class="service-list-header">
+                      <span>{formatNumber(item.use_distance)}km</span>
+                      <span class="color-gray ml-10">
+                        {formatNumber(item.use_time)}분
+                      </span>
                     </div>
-                    <div class="color-gray">결제일시</div>
-                    <div>{formatDate(item.pay_datetime)}</div>
-                    <div class="color-gray">결제수단</div>
-                    <div>
-                      {item.card_pay > 0
-                        ? `카드 ${formatNumber(item.card_pay)}원`
-                        : ""}
-                      {item.card_pay > 0 && item.point_pay > 0 ? " + " : ""}
-                      {item.point_pay > 0
-                        ? `포인트 ${formatNumber(item.point_pay)}P`
-                        : ""}
+                    <div class="service-list-body">
+                      <div class="color-gray">이용시간</div>
+                      <div>
+                        {formatDate(item.use_start_dt)} ~{" "}
+                        {formatDate(item.use_end_dt)}
+                      </div>
+                      <div class="color-gray">결제일시</div>
+                      <div>{formatDate(item.pay_datetime)}</div>
+                      <div class="color-gray">결제수단</div>
+                      <div>
+                        {item.card_pay > 0
+                          ? `카드 ${formatNumber(item.card_pay)}원`
+                          : ""}
+                        {item.card_pay > 0 && item.point_pay > 0 ? " + " : ""}
+                        {item.point_pay > 0
+                          ? `포인트 ${formatNumber(item.point_pay)}P`
+                          : ""}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <hr />
-              </>
-            );
-          })}
-        </InfiniteScroll>
+                  <hr />
+                </>
+              );
+            })}
+          </div>
+          <Pagination
+            count={
+              parseInt(totalCount / PAGE_SIZE) +
+              (totalCount % PAGE_SIZE != 0 ? 1 : 0)
+            }
+            onChange={onPageChange}
+          />
+        </>
       ) : (
         <div className="service-empty">
           <div className="service-empty-container">
