@@ -3,6 +3,7 @@ import axios from "axios";
 import "./res/index.css";
 import dayjs from "dayjs";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { useNavigate } from "react-router-dom";
 
 const USER_NO = "ME00001";
 const PAGE_SIZE = 3;
@@ -13,6 +14,7 @@ function App() {
   const [summary, setSummary] = useState();
   const [usedList, setUsedList] = useState([]);
   const [pageIndex, setPageIndex] = useState(1);
+  const navigate = useNavigate();
 
   //infinite scroll 사용시
   const [scrollMore, setScrollMore] = useState(true);
@@ -106,6 +108,10 @@ function App() {
     <div>
       <div className="main-title">
         <h1>서비스 이용내역</h1>
+        <button onClick={() => {
+          const queryData = "ImYourFather"
+          navigate({ pathname: '/test', search: `?data=${queryData}` });
+        }}>페이지 이동</button>
         <div>{userName}</div>
       </div>
       <hr />
