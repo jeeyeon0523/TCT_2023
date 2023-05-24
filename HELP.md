@@ -4,7 +4,7 @@ DATE_FORMAT(created_datetime, '%Y-%m-%d %H:%i')
 H 대신 h로하면 12시간 표기!
 
 ### mybatis 참고
-<![CDATA[>=]]>
+<!-- <![CDATA[>=]]> -->
 <foreach collection="adgroupIds" item="item" index="i" open="(" separator="," close=")">
      #{item}
 </foreach>
